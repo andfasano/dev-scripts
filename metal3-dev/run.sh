@@ -24,7 +24,10 @@ export IRONIC_INSPECTOR_ENDPOINT=http://172.22.0.3:5050/v1/
 oc apply -f $(dirname $0)/deployment.yaml -n openshift-machine-api
 
 # Wait for the ironic service to be available
-wait_for_json ironic $IRONIC_ENDPOINT 120 -H "Accept: application/json" -H "Content-Type: application/json"
+export MASTER0=master-0.$CLUSTER_DOMAIN
+export IRONIC_ENDPOINT_PUBLIC=$(oc get nodes -o json | jq -r '.items[] | select(.metadata.name == env.MASTER0) | .status.addresses[] | select(.type == "InternalIP") | .address')
+
+wait_for_json ironic $IRONIC_ENDPOINT_PUBLIC 120 -H "Accept: application/json" -H "Content-Type: application/json"
 
 cd $bmo_path
 
